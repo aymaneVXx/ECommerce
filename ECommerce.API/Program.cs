@@ -1,34 +1,82 @@
 using ECommerce.Infrastructure.DependencyInjection;
 using ECommerce.Application.DependencyInjection;
 using System.Text.Json.Serialization;
+using Serilog;
+using Serilog.Events;
 
-var builder = WebApplication.CreateBuilder(args);
+try
+{
+    // Configuration de Serilog
+    Log.Logger = new LoggerConfiguration()
+        .MinimumLevel.Information()
+        .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+        .Enrich.FromLogContext()
+        .WriteTo.Console()
+        .WriteTo.File(
+            path: "Logs/log-.txt",
+            rollingInterval: RollingInterval.Day)
+        .CreateLogger();
 
-builder.Services.AddInfrastructureServices(builder.Configuration);
-builder.Services.AddApplicationServices();
+    Log.Information("Application is building");
 
-builder.Services.AddControllers()
-    .AddJsonOptions(opt =>
+    var builder = WebApplication.CreateBuilder(args);
+
+    // Brancher Serilog au Host
+    builder.Host.UseSerilog();
+
+    // Brancher CORS
+    builder.Services.AddCors(options =>
     {
-        opt.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.AddPolicy("CorsPolicy", policy =>
+        {
+            policy
+                .SetIsOriginAllowed(_ => true) 
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        });
     });
 
-// Swagger
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+    // Dependency Injection 
+    builder.Services.AddInfrastructureServices(builder.Configuration);
+    builder.Services.AddApplicationServices();
 
-var app = builder.Build();
+    builder.Services.AddControllers()
+        .AddJsonOptions(opt =>
+        {
+            opt.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        });
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    // Swagger
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
+
+    var app = builder.Build();
+
+    // Pipeline 
+    app.UseInfrastructureService(); // middleware d’exception global
+    app.UseSerilogRequestLogging();
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+
+    app.UseHttpsRedirection();
+    app.UseCors("CorsPolicy");
+    app.UseAuthorization();
+    app.MapControllers();
+
+    Log.Information("Application is running");
+
+    app.Run();
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
+catch (Exception ex)
+{
+    Log.Error(ex, "Application failed to start");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
