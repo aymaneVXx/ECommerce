@@ -1,5 +1,6 @@
 ﻿using ECommerce.Application.DTOs.Cart;
 using ECommerce.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerce.API.Controllers;
@@ -16,12 +17,14 @@ public class CartController : ControllerBase
     }
 
     [HttpPost("checkout")]
+    [Authorize(Roles = "Admin")]
     public ActionResult Checkout([FromBody] CheckoutDto dto)
     {
         return BadRequest("Checkout is not implemented yet. Stripe integration comes in the next steps.");
     }
 
     [HttpPost("save-checkout")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult> SaveCheckout([FromBody] List<CreateCheckoutArchiveDto> archives)
     {
         var result = await _service.SaveCheckoutHistoryAsync(archives);
@@ -30,6 +33,7 @@ public class CartController : ControllerBase
     }
 
     [HttpGet("archives")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<GetCheckoutArchiveDto>>> Archives()
     {
         var archives = await _service.GetCheckoutHistoryAsync();

@@ -1,5 +1,6 @@
 ﻿using ECommerce.Application.DTOs.Category;
 using ECommerce.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerce.API.Controllers;
@@ -31,6 +32,7 @@ public class CategoryController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult> Add([FromBody] CreateCategoryDto dto)
     {
         var result = await _service.AddAsync(dto);
@@ -40,6 +42,7 @@ public class CategoryController : ControllerBase
     }
 
     [HttpPut]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult> Update([FromBody] UpdateCategoryDto dto)
     {
         var result = await _service.UpdateAsync(dto);
@@ -55,6 +58,7 @@ public class CategoryController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult> Delete(Guid id)
     {
         var result = await _service.DeleteAsync(id);

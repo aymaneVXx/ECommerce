@@ -2,7 +2,9 @@
 using ECommerce.Application.DTOs.Category;
 using ECommerce.Application.DTOs.Payment;
 using ECommerce.Application.DTOs.Product;
+using ECommerce.Application.DTOs.Identity;
 using ECommerce.Domain.Entities;
+using ECommerce.Domain.Identity;
 
 namespace ECommerce.Application.Mapping;
 
@@ -24,5 +26,12 @@ public class MappingProfile : Profile
 
         // Payment
         CreateMap<PaymentMethod, GetPaymentMethodDto>();
+
+        // Identity
+        CreateMap<CreateUser, AppUser>()
+            .ForMember(d => d.UserName, opt => opt.MapFrom(s => s.Email));
+
+        CreateMap<LoginUser, AppUser>()
+            .ForMember(d => d.UserName, opt => opt.MapFrom(s => s.Email));
     }
 }

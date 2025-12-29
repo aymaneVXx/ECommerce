@@ -1,9 +1,11 @@
 ﻿using ECommerce.Domain.Entities;
+using ECommerce.Domain.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Infrastructure.Data;
 
-public class AppDbContext : DbContext
+public class AppDbContext : IdentityDbContext<AppUser>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
@@ -13,6 +15,9 @@ public class AppDbContext : DbContext
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<PaymentMethod> PaymentMethods => Set<PaymentMethod>();
     public DbSet<CheckoutArchive> CheckoutArchives => Set<CheckoutArchive>();
+
+    // AJOUT Identity
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -49,5 +54,14 @@ public class AppDbContext : DbContext
                 Name = "Credit Card"
             }
         );
+
+        modelBuilder.Entity<RefreshToken>()
+            .Property(x => x.UserId)
+            .IsRequired();
+
+        // Config RefreshToken
+        modelBuilder.Entity<RefreshToken>()
+            .Property(x => x.Token)
+            .IsRequired();
     }
 }
