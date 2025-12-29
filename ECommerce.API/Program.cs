@@ -1,15 +1,20 @@
-using ECommerce.Infrastructure.DependencyInjection;
 using ECommerce.Application.DependencyInjection;
-using System.Text.Json.Serialization;
-using Serilog;
-using Serilog.Events;
-using Microsoft.Extensions.DependencyInjection;
+using ECommerce.Application.Validations.Authentication;
 using ECommerce.Domain.Identity;
+using ECommerce.Infrastructure.DependencyInjection;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using Serilog;
+using Serilog.Events;
 using System.Security.Claims;
+using System.Text;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
+
 
 try
 {
@@ -53,6 +58,11 @@ try
         {
             opt.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
         });
+
+    builder.Services.Configure<ApiBehaviorOptions>(options =>
+    {
+        options.SuppressModelStateInvalidFilter = true;
+    });
 
     // Swagger
     builder.Services.AddEndpointsApiExplorer();
@@ -134,6 +144,9 @@ try
 
         };
     });
+
+    builder.Services.AddFluentValidationAutoValidation();
+    builder.Services.AddValidatorsFromAssemblyContaining<CreateUserValidator>();
 
     var app = builder.Build();
 

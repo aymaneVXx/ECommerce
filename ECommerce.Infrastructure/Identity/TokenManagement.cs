@@ -1,13 +1,14 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
-using ECommerce.Application.Interfaces.Identity;
+﻿using ECommerce.Application.Interfaces.Identity;
 using ECommerce.Domain.Identity;
 using ECommerce.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Net;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace ECommerce.Infrastructure.Identity;
 
@@ -49,7 +50,8 @@ public class TokenManagement : ITokenManagement
         using var rng = RandomNumberGenerator.Create();
         rng.GetBytes(randomBytes);
 
-        return Convert.ToBase64String(randomBytes);
+        var token = Convert.ToBase64String(randomBytes);
+        return WebUtility.UrlEncode(token);
     }
 
     public async Task<bool> ValidateRefreshToken(string refreshToken)

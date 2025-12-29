@@ -1,11 +1,12 @@
-﻿using ECommerce.Application.Mapping;
+﻿using ECommerce.Application.DTOs.Identity;
+using ECommerce.Application.Mapping;
 using ECommerce.Application.Services;
-using ECommerce.Application.Services.Implementations;
-using Microsoft.Extensions.DependencyInjection;
-using ECommerce.Application.DTOs.Identity;
 using ECommerce.Application.Services.Authentication;
+using ECommerce.Application.Services.Implementations;
+using ECommerce.Application.Services.Validations;
 using ECommerce.Application.Validations.Authentication;
 using FluentValidation;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ECommerce.Application.DependencyInjection;
 
@@ -22,6 +23,7 @@ public static class ServiceContainer
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<IValidator<CreateUser>, CreateUserValidator>();
         services.AddScoped<IValidator<LoginUser>, LoginUserValidator>();
+        services.AddScoped<IValidationService, ValidationService>();
 
         return services;
     }

@@ -29,6 +29,7 @@ public static class ServiceContainer
         services.AddScoped<IRoleManagement, RoleManagement>();
         services.AddScoped<IUserManagement, UserManagement>();
         services.AddScoped<ITokenManagement, TokenManagement>();
+        services.AddScoped(typeof(IApplicationLogger<>), typeof(ApplicationLogger<>));
 
         return services;
     }
