@@ -66,4 +66,16 @@ public class ProductRepository : IProductRepository
         await _db.SaveChangesAsync();
         return true;
     }
+    public async Task<List<Product>> GetProductsByIdsAsync(IEnumerable<Guid> ids)
+    {
+        var list = ids?.Distinct().ToList() ?? new List<Guid>();
+        if (list.Count == 0)
+            return new List<Product>();
+
+        return await _db.Products
+            .AsNoTracking()
+            .Where(p => list.Contains(p.Id))
+            .ToListAsync();
+    }
+
 }

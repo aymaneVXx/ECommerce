@@ -1,9 +1,12 @@
-﻿using System;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace ECommerce.Domain.Entities;
 
 public class PaymentMethod
 {
-    public Guid Id { get; set; } = Guid.NewGuid();
-    public string Name { get; set; } = "Card";
+    [Key]
+    public Guid Id { get; set; }
+
+    [Required]
+    public string Name { get; set; } = string.Empty;
 }

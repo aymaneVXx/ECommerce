@@ -1,15 +1,17 @@
-﻿using ECommerce.Domain.Interfaces;
+﻿using ECommerce.Application.Interfaces.Identity;
+using ECommerce.Application.Services;
+using ECommerce.Application.Services.Logging;
+using ECommerce.Domain.Interfaces;
 using ECommerce.Infrastructure.Data;
+using ECommerce.Infrastructure.Identity;
+using ECommerce.Infrastructure.Logging;
 using ECommerce.Infrastructure.Middleware;
 using ECommerce.Infrastructure.Repositories;
+using ECommerce.Infrastructure.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using ECommerce.Application.Services.Logging;
-using ECommerce.Infrastructure.Logging;
-using ECommerce.Application.Interfaces.Identity;
-using ECommerce.Infrastructure.Identity;
 
 
 namespace ECommerce.Infrastructure.DependencyInjection;
@@ -23,13 +25,14 @@ public static class ServiceContainer
 
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();
-        services.AddScoped<IPaymentRepository, PaymentRepository>();
+        services.AddScoped<IPaymentMethodRepository, PaymentMethodRepository>();
         services.AddScoped<ICartRepository, CartRepository>();
         services.AddScoped(typeof(IApplicationLogger<>), typeof(ApplicationLogger<>));
         services.AddScoped<IRoleManagement, RoleManagement>();
         services.AddScoped<IUserManagement, UserManagement>();
         services.AddScoped<ITokenManagement, TokenManagement>();
         services.AddScoped(typeof(IApplicationLogger<>), typeof(ApplicationLogger<>));
+        services.AddScoped<ICheckoutPaymentService, StripePaymentService>();
 
         return services;
     }

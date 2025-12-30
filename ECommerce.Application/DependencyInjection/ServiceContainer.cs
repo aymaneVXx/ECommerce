@@ -18,7 +18,7 @@ public static class ServiceContainer
 
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IProductService, ProductService>();
-        services.AddScoped<IPaymentService, PaymentService>();
+        services.AddScoped<IPaymentMethodService, PaymentMethodService>();
         services.AddScoped<ICartService, CartService>();
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<IValidator<CreateUser>, CreateUserValidator>();

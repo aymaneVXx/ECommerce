@@ -2,6 +2,7 @@
 using ECommerce.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace ECommerce.API.Controllers;
 
@@ -15,22 +16,32 @@ public class CartController : ControllerBase
     {
         _service = service;
     }
+    private string? CurrentUserId => User.FindFirstValue(ClaimTypes.NameIdentifier);
 
     [HttpPost("checkout")]
     [Authorize(Roles = "Admin")]
-    public ActionResult Checkout([FromBody] CheckoutDto dto)
+    public async Task<IActionResult> Checkout([FromBody] CheckoutDto dto)
     {
-        return BadRequest("Checkout is not implemented yet. Stripe integration comes in the next steps.");
+        var result = await _service.CheckoutAsync(dto);
+        if (!result.Success) return BadRequest(result);
+
+        return Ok(result); // result.Message = URL Stripe Checkout
     }
 
+
     [HttpPost("save-checkout")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "User,Admin")]
     public async Task<ActionResult> SaveCheckout([FromBody] List<CreateCheckoutArchiveDto> archives)
     {
-        var result = await _service.SaveCheckoutHistoryAsync(archives);
+        var userId = CurrentUserId;
+        if (string.IsNullOrWhiteSpace(userId)) return Unauthorized();
+
+        var result = await _service.SaveCheckoutHistoryAsync(userId, archives);
         if (!result.Success) return BadRequest(result.Message);
+
         return Ok(result);
     }
+
 
     [HttpGet("archives")]
     [Authorize(Roles = "Admin")]

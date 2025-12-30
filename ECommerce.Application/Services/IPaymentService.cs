@@ -1,8 +1,9 @@
-﻿using ECommerce.Application.DTOs.Payment;
+﻿using ECommerce.Application.DTOs.Cart;
+using ECommerce.Application.DTOs.Payment;
 
 namespace ECommerce.Application.Services;
 
-public interface IPaymentService
+public interface IPaymentMethodService
 {
-    Task<List<GetPaymentMethodDto>> GetAllAsync();
+    Task<IEnumerable<GetPaymentMethodDto>> GetPaymentMethodsAsync();
 }

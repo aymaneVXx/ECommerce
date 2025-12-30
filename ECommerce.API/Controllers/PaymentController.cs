@@ -1,5 +1,4 @@
-﻿using ECommerce.Application.DTOs.Payment;
-using ECommerce.Application.Services;
+﻿using ECommerce.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerce.API.Controllers;
@@ -8,17 +7,17 @@ namespace ECommerce.API.Controllers;
 [Route("api/[controller]")]
 public class PaymentController : ControllerBase
 {
-    private readonly IPaymentService _service;
+    private readonly IPaymentMethodService _service;
 
-    public PaymentController(IPaymentService service)
+    public PaymentController(IPaymentMethodService service)
     {
         _service = service;
     }
 
-    [HttpGet("method")]
-    public async Task<ActionResult<List<GetPaymentMethodDto>>> Method()
+    [HttpGet("methods")]
+    public async Task<IActionResult> GetMethods()
     {
-        var methods = await _service.GetAllAsync();
-        return Ok(methods);
+        var methods = await _service.GetPaymentMethodsAsync();
+        return methods.Any() ? Ok(methods) : NotFound("No payment methods found.");
     }
 }

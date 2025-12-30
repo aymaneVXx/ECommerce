@@ -3,6 +3,6 @@
 public class CheckoutDto
 {
     public Guid PaymentMethodId { get; set; }
-    public List<ProcessCartDto> Carts { get; set; } = new();
+    public List<ProcessCart> Carts { get; set; } = new();
 }
 

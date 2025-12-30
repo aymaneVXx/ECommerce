@@ -24,6 +24,8 @@ public class CartRepository : ICartRepository
     public async Task<List<CheckoutArchive>> GetCheckoutHistoryAsync()
         => await _db.CheckoutArchives
             .AsNoTracking()
+            .Include(x => x.Product)
             .OrderByDescending(x => x.DateCreated)
             .ToListAsync();
+
 }

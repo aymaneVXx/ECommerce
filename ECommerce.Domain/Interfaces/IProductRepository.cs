@@ -13,4 +13,7 @@ public interface IProductRepository
     Task<Product> AddAsync(Product product);
     Task<Product?> UpdateAsync(Product product);
     Task<bool> DeleteAsync(Guid id);
+
+    Task<List<Product>> GetProductsByIdsAsync(IEnumerable<Guid> ids);
+
 }

@@ -1,7 +1,10 @@
 ﻿namespace ECommerce.Application.DTOs.Cart;
 
-public class CreateCheckoutArchiveDto : ProcessCartDto
+public class CreateCheckoutArchiveDto
 {
-    public string UserId { get; set; } = string.Empty;
+    public Guid ProductId { get; set; }
+    public int Quantity { get; set; }
+    public decimal AmountPaid { get; set; }
 }
+
 
