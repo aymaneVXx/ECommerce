@@ -18,6 +18,8 @@ public class AppDbContext : IdentityDbContext<AppUser>
 
     // AJOUT Identity
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<PendingCheckout> PendingCheckouts => Set<PendingCheckout>();
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -47,6 +49,10 @@ public class AppDbContext : IdentityDbContext<AppUser>
             .WithMany()
             .HasForeignKey(x => x.ProductId);
 
+        modelBuilder.Entity<CheckoutArchive>()
+            .Property(x => x.AmountPaid)
+            .HasPrecision(18, 2);
+
         modelBuilder.Entity<PaymentMethod>().HasData(
             new PaymentMethod
             {
@@ -63,5 +69,19 @@ public class AppDbContext : IdentityDbContext<AppUser>
         modelBuilder.Entity<RefreshToken>()
             .Property(x => x.Token)
             .IsRequired();
+
+        modelBuilder.Entity<CheckoutArchive>()
+            .HasIndex(x => new { x.StripeSessionId, x.ProductId })
+            .IsUnique()
+            .HasFilter("[StripeSessionId] IS NOT NULL");
+
+        modelBuilder.Entity<PendingCheckout>()
+            .Property(x => x.CartJson)
+            .IsRequired();
+
+        modelBuilder.Entity<PendingCheckout>()
+            .HasIndex(x => x.StripeSessionId)
+            .IsUnique()
+            .HasFilter("[StripeSessionId] IS NOT NULL");
     }
 }

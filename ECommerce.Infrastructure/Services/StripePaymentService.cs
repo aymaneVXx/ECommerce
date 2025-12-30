@@ -18,17 +18,29 @@ public class StripePaymentService : ICheckoutPaymentService
     }
 
     public async Task<ServiceResponse> Pay(
+        string userId,
+        Guid pendingCheckoutId,
         decimal totalAmount,
         IEnumerable<CartProduct> products,
         IEnumerable<ProcessCart> cart)
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(userId))
+                return ServiceResponse.Fail("User not found.");
+
+            if (pendingCheckoutId == Guid.Empty)
+                return ServiceResponse.Fail("Invalid checkout id.");
+
+            var cartList = cart?.ToList() ?? new List<ProcessCart>();
+            if (cartList.Count == 0)
+                return ServiceResponse.Fail("Cart is empty.");
+
             var lineItems = new List<SessionLineItemOptions>();
 
             foreach (var product in products)
             {
-                var qty = cart.FirstOrDefault(x => x.ProductId == product.Id)?.Quantity ?? 1;
+                var qty = cartList.FirstOrDefault(x => x.ProductId == product.Id)?.Quantity ?? 1;
 
                 lineItems.Add(new SessionLineItemOptions
                 {
@@ -38,7 +50,11 @@ public class StripePaymentService : ICheckoutPaymentService
                         ProductData = new SessionLineItemPriceDataProductDataOptions
                         {
                             Name = product.Name,
-                            Description = product.Description
+                            Description = product.Description,
+                            Metadata = new Dictionary<string, string>
+                            {
+                                ["productId"] = product.Id.ToString()
+                            }
                         },
                         UnitAmount = (long)(product.Price * 100m)
                     },
@@ -54,7 +70,15 @@ public class StripePaymentService : ICheckoutPaymentService
                 LineItems = lineItems,
                 Mode = "payment",
                 SuccessUrl = $"{clientUrl}/payment-success",
-                CancelUrl = $"{clientUrl}/payment-cancel"
+                CancelUrl = $"{clientUrl}/payment-cancel",
+
+                // lien session (user + pendingCheckout)
+                ClientReferenceId = userId,
+                Metadata = new Dictionary<string, string>
+                {
+                    ["userId"] = userId,
+                    ["pendingCheckoutId"] = pendingCheckoutId.ToString()
+                }
             };
 
             var service = new SessionService();
@@ -68,4 +92,3 @@ public class StripePaymentService : ICheckoutPaymentService
         }
     }
 }
-

@@ -19,18 +19,22 @@ public class CartController : ControllerBase
     private string? CurrentUserId => User.FindFirstValue(ClaimTypes.NameIdentifier);
 
     [HttpPost("checkout")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "User,Admin")]
     public async Task<IActionResult> Checkout([FromBody] CheckoutDto dto)
     {
-        var result = await _service.CheckoutAsync(dto);
+        var userId = CurrentUserId;
+        if (string.IsNullOrWhiteSpace(userId)) return Unauthorized();
+
+        var result = await _service.CheckoutAsync(userId, dto);
         if (!result.Success) return BadRequest(result);
 
-        return Ok(result); // result.Message = URL Stripe Checkout
+        return Ok(result);
     }
 
 
+
     [HttpPost("save-checkout")]
-    [Authorize(Roles = "User,Admin")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult> SaveCheckout([FromBody] List<CreateCheckoutArchiveDto> archives)
     {
         var userId = CurrentUserId;

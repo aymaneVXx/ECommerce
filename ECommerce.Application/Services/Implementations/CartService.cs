@@ -1,4 +1,5 @@
-﻿using ECommerce.Application.DTOs.Cart;
+﻿using System.Text.Json;
+using ECommerce.Application.DTOs.Cart;
 using ECommerce.Application.Responses;
 using ECommerce.Application.Services;
 using ECommerce.Domain.Entities;
@@ -26,14 +27,26 @@ public class CartService : ICartService
         _userManagement = userManagement;
     }
 
-
-    public async Task<ServiceResponse> CheckoutAsync(CheckoutDto dto)
+    public async Task<ServiceResponse> CheckoutAsync(string userId, CheckoutDto dto)
     {
+        if (string.IsNullOrWhiteSpace(userId))
+            return ServiceResponse.Fail("User not found.");
+
         if (dto is null || dto.Carts is null || dto.Carts.Count == 0)
             return ServiceResponse.Fail("No cart items provided.");
 
         if (dto.PaymentMethodId == Guid.Empty)
             return ServiceResponse.Fail("Payment method is required.");
+
+        const int maxQtyPerItem = 20;
+        foreach (var c in dto.Carts)
+        {
+            if (c.ProductId == Guid.Empty)
+                return ServiceResponse.Fail("Invalid product id in cart.");
+
+            if (c.Quantity <= 0 || c.Quantity > maxQtyPerItem)
+                return ServiceResponse.Fail($"Invalid quantity. Max allowed per item is {maxQtyPerItem}.");
+        }
 
         var ids = dto.Carts.Select(x => x.ProductId).Distinct().ToList();
 
@@ -44,6 +57,14 @@ public class CartService : ICartService
         var missing = ids.Except(products.Select(p => p.Id)).ToList();
         if (missing.Count > 0)
             return ServiceResponse.Fail("Some products in cart were not found.");
+
+        // stock check avant de créer la session Stripe
+        foreach (var p in products)
+        {
+            var qty = dto.Carts.First(x => x.ProductId == p.Id).Quantity;
+            if (p.Quantity < qty)
+                return ServiceResponse.Fail($"Insufficient stock for product '{p.Name}'.");
+        }
 
         var cartProducts = products.Select(p => new CartProduct
         {
@@ -57,13 +78,23 @@ public class CartService : ICartService
         foreach (var p in products)
         {
             var qty = dto.Carts.First(x => x.ProductId == p.Id).Quantity;
-            totalAmount += (p.Price * qty);
+            totalAmount += p.Price * qty;
         }
 
-        return await _paymentService.Pay(totalAmount, cartProducts, dto.Carts);
+        // ✅ PendingCheckout côté serveur
+        var pending = new PendingCheckout
+        {
+            UserId = userId,
+            CartJson = JsonSerializer.Serialize(dto.Carts),
+            Processed = false
+        };
+
+        var pendingId = await _repo.CreatePendingCheckoutAsync(pending);
+
+        return await _paymentService.Pay(userId, pendingId, totalAmount, cartProducts, dto.Carts);
     }
 
-    public async Task<ServiceResponse> SaveCheckoutHistoryAsync(string userId, IEnumerable<CreateCheckoutArchiveDto> archives)
+    public async Task<ServiceResponse> SaveCheckoutHistoryAsync(string userId, IEnumerable<CreateCheckoutArchiveDto> archives, string? stripeSessionId = null)
     {
         if (string.IsNullOrWhiteSpace(userId))
             return ServiceResponse.Fail("User not found.");
@@ -79,12 +110,14 @@ public class CartService : ICartService
             ProductId = x.ProductId,
             Quantity = x.Quantity,
             AmountPaid = x.AmountPaid,
+            StripeSessionId = stripeSessionId,
             DateCreated = DateTime.UtcNow
         });
 
         await _repo.SaveCheckoutHistoryAsync(entities);
         return ServiceResponse.Ok("Checkout history saved.");
     }
+
     public async Task<List<GetCheckoutArchiveDto>> GetCheckoutHistoryAsync()
     {
         var archives = await _repo.GetCheckoutHistoryAsync();
@@ -110,5 +143,4 @@ public class CartService : ICartService
 
         return result;
     }
-
 }

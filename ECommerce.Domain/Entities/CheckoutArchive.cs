@@ -11,6 +11,8 @@ public class CheckoutArchive
     public int Quantity { get; set; }
     public decimal AmountPaid { get; set; }
 
+    public string? StripeSessionId { get; set; }
+
     public DateTime DateCreated { get; set; } = DateTime.UtcNow;
 
     public Product? Product { get; set; }
