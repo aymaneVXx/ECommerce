@@ -1,0 +1,10 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0
+WORKDIR /src
+
+COPY . .
+
+# EF tool
+RUN dotnet tool install --global dotnet-ef --version 9.*
+ENV PATH="$PATH:/root/.dotnet/tools"
+
+ENTRYPOINT ["sh", "-c", "dotnet ef database update --project ./ECommerce.Infrastructure/ECommerce.Infrastructure.csproj --startup-project ./ECommerce.API/ECommerce.API.csproj && echo 'Migrations OK'"]

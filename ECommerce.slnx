@@ -1,4 +1,8 @@
 <Solution>
+  <Folder Name="/docker-compose/">
+    <File Path=".env" />
+    <File Path="docker-compose.yml" />
+  </Folder>
   <Project Path="ECommerce.API/ECommerce.API.csproj" />
   <Project Path="ECommerce.Application/ECommerce.Application.csproj" />
   <Project Path="ECommerce.Domain/ECommerce.Domain.csproj" />
